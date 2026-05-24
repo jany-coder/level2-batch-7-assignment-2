@@ -1,13 +1,13 @@
-import { Pool } from "pg";
-import config from "../config";
+import { Pool } from 'pg';
+import config from '../config';
 
-const pool = new Pool({
-    connectionString: config.connection_string,
+export const pool = new Pool({
+  connectionString: config.connection_string,
 });
 
 export const initDB = async () => {
-    try {
-        await pool.query(`
+  try {
+    await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(100) NOT NULL,
@@ -19,7 +19,7 @@ export const initDB = async () => {
             );
         `);
 
-        await pool.query(`
+    await pool.query(`
             CREATE TABLE IF NOT EXISTS issues (
                 id SERIAL PRIMARY KEY,
                 title VARCHAR(150) NOT NULL,
@@ -32,7 +32,7 @@ export const initDB = async () => {
             );
         `);
 
-        await pool.query(`
+    await pool.query(`
             CREATE OR REPLACE FUNCTION set_updated_at()
             RETURNS TRIGGER AS $$
             BEGIN
@@ -42,7 +42,7 @@ export const initDB = async () => {
             $$ LANGUAGE plpgsql;
         `);
 
-        await pool.query(`
+    await pool.query(`
             DROP TRIGGER IF EXISTS set_users_updated_at ON users;
             CREATE TRIGGER set_users_updated_at
             BEFORE UPDATE ON users
@@ -50,7 +50,7 @@ export const initDB = async () => {
             EXECUTE FUNCTION set_updated_at();
         `);
 
-        await pool.query(`
+    await pool.query(`
             DROP TRIGGER IF EXISTS set_issues_updated_at ON issues;
             CREATE TRIGGER set_issues_updated_at
             BEFORE UPDATE ON issues
@@ -58,10 +58,10 @@ export const initDB = async () => {
             EXECUTE FUNCTION set_updated_at();
         `);
 
-        console.log("Database initialized successfully");
-    } catch (error) {
-        console.error("Error initializing database:", error);
-    }
+    console.log('Database initialized successfully');
+  } catch (error) {
+    console.error('Error initializing database:', error);
+  }
 };
 
 export default pool;
