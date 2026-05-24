@@ -1,23 +1,17 @@
-import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
+import app from "./app";
+import config from "./config";
+import { initDB } from "./db";
 
-const app = express();
-const port = Number(process.env.PORT ?? 3000);
 
-app.use(cors());
-app.use(express.json());
-app.use(cookieParser());
+const main = async () => {
+    try {
+        await initDB();
+        app.listen(config.port, () => {
+            console.log(`Server is running on port ${config.port}`);
+        });
+    } catch (error) {
+        console.error('Error starting server:', error);
+    }
+}
 
-app.get('/', (_req, res) => {
-  res.json({ message: 'Express API is running' });
-});
-
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok' });
-});
-
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
-});
+main();
