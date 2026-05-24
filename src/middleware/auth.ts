@@ -5,6 +5,7 @@ import sendResponse from '../utility/sendResponse';
 
 export interface AuthUser {
   id: number;
+  name: string;
   email: string;
   role: string;
 }
@@ -19,8 +20,7 @@ declare global {
 
 const auth = (...allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    const header = req.headers.authorization;
-    const token = header?.startsWith('Bearer ') ? header.slice(7) : header;
+    const token = req.headers.authorization;
 
     if (!token) {
       return sendResponse(res, {
@@ -32,8 +32,10 @@ const auth = (...allowedRoles: string[]) => {
 
     try {
       const decoded = jwt.verify(token, config.jwt_secret) as JwtPayload & AuthUser;
+
       req.user = {
         id: decoded.id,
+        name: decoded.name,
         email: decoded.email,
         role: decoded.role,
       };
@@ -46,7 +48,7 @@ const auth = (...allowedRoles: string[]) => {
         });
       }
 
-      return next();
+      next();
     } catch {
       return sendResponse(res, {
         statusCode: 401,

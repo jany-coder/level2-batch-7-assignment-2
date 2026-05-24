@@ -1,5 +1,6 @@
 export type IssueType = 'bug' | 'feature_request';
 export type IssueStatus = 'open' | 'in_progress' | 'resolved';
+export type SortOrder = 'newest' | 'oldest';
 
 export interface ICreateIssue {
   title: string;
@@ -8,19 +9,14 @@ export interface ICreateIssue {
   reporter_id: number;
 }
 
-export interface ICreateIssuePayload {
-  title: string;
-  description: string;
-  type: IssueType;
+export interface IUpdateIssue {
+  title?: string;
+  description?: string;
+  type?: IssueType;
 }
 
-export interface Issue {
-  id: number;
-  title: string;
-  description: string;
-  type: IssueType;
-  status: IssueStatus;
-  reporter_id: number;
-  created_at: string;
-  updated_at: string;
+export interface IIssueFilters {
+  sort?: SortOrder;
+  type?: IssueType;
+  status?: IssueStatus;
 }

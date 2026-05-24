@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt, { type SignOptions } from 'jsonwebtoken';
 import type { ILogin, ISignup } from './auth.interface';
-import pool from '../../db';
+import { pool } from '../../db';
 import config from '../../config';
 
 const signupIntoDB = async (payload: ISignup) => {
@@ -10,12 +10,10 @@ const signupIntoDB = async (payload: ISignup) => {
   const hashPassword = await bcrypt.hash(password, 10);
 
   const result = await pool.query(
-    `
-      INSERT INTO users (name, email, password, role)
-      VALUES ($1, $2, $3, COALESCE($4, 'contributor'))
-      RETURNING id, name, email, role, created_at, updated_at
-    `,
-    [name, email.toLowerCase(), hashPassword, role]
+    `INSERT INTO users (name, email, password, role)
+     VALUES ($1, $2, $3, COALESCE($4, 'contributor'))
+     RETURNING id, name, email, role, created_at, updated_at`,
+    [name, email, hashPassword, role]
   );
 
   return result.rows[0];
@@ -24,26 +22,26 @@ const signupIntoDB = async (payload: ISignup) => {
 const loginFromDB = async (payload: ILogin) => {
   const { email, password } = payload;
 
-  const userData = await pool.query(`SELECT * FROM users WHERE email = $1`, [email.toLowerCase()]);
+  const userData = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
 
-  const user = userData.rows[0];
-  if (!user) {
-    throw new Error('Invalid credentials');
+  if (userData.rows.length === 0) {
+    throw new Error('Invalid email or password');
   }
 
-  // compare the provided password with the hashed password in the database
-  const isPasswordMatch = await bcrypt.compare(password, user.password);
-  if (!isPasswordMatch) {
-    throw new Error('Invalid credentials');
+  const user = userData.rows[0];
+
+  const matchPassword = await bcrypt.compare(password, user.password);
+  if (!matchPassword) {
+    throw new Error('Invalid email or password');
   }
 
   const jwtPayload = {
     id: user.id,
+    name: user.name,
     email: user.email,
     role: user.role,
   };
 
-  // generate a JWT token for the authenticated user
   const token = jwt.sign(jwtPayload, config.jwt_secret, {
     expiresIn: config.jwt_expires_in,
   } as SignOptions);

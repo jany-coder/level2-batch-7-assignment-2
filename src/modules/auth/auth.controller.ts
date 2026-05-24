@@ -12,11 +12,19 @@ const signup = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
+    if (error?.code === '23505') {
+      return sendResponse(res, {
+        statusCode: 400,
+        success: false,
+        message: 'Email already exists',
+        errors: error.message,
+      });
+    }
     return sendResponse(res, {
       statusCode: 500,
       success: false,
-      message: 'Internal server error',
-      error: error.message || error,
+      message: error.message || 'Internal server error',
+      errors: error.message,
     });
   }
 };
@@ -27,7 +35,7 @@ const login = async (req: Request, res: Response) => {
     return sendResponse(res, {
       statusCode: 200,
       success: true,
-      message: 'Login successfully',
+      message: 'Login successful',
       data: result,
     });
   } catch (error: any) {
@@ -35,7 +43,7 @@ const login = async (req: Request, res: Response) => {
       statusCode: 401,
       success: false,
       message: error.message || 'Invalid credentials',
-      error: error.message || error,
+      errors: error.message,
     });
   }
 };
